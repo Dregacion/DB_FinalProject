@@ -6,7 +6,7 @@
 
 <?php
 
-	if(isset($_POST['submit'])){
+	if(isset($_POST['submit'])){ 
        
        /*
 		$fields_with_max_lengths = array("number" => 12, "amount_load" => 4, "amount_paid" => 4);
@@ -36,7 +36,7 @@
 			$query .= ")";
             */
 
-            $query = "CALL insert_into_load_records('$date', '$time', '$username', $number, $amount_load, $amount_paid, '$network' )";
+            $query = "CALL insert_into_load_records('$date', '$time', '$username', '$number', $amount_load, $amount_paid, '$network' )";
 
 			$result = mysqli_query($connection, $query);
 
@@ -82,7 +82,7 @@
 
             <form class="form-horizontal" action="record_loads.php" method="post">
 
-                <center><h3>Record Load Transactions</h3></center>
+                <center><h3>Record Load Transactions</h3></center> 
                 <hr style="width:440px; margin-left: -60px"><br>
 
                 <div class="form-group">

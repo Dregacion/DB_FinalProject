@@ -21,6 +21,53 @@
 		$sort = 'DESC';
 	} 
 
+	$result = mysqli_query($connection, "SELECT * FROM networks ORDER BY $order $sort"); 
+
+	if(isset($_POST['search'])){
+
+	    $searchColumn = $_POST['column'];
+        $searchValue = $_POST['valueToSearch'];
+
+        if($searchColumn == 'Added by'){
+
+        	$query  = "SELECT * FROM networks WHERE Added_By LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'Network'){
+
+        	$query  = "SELECT * FROM networks WHERE Network LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'All'){
+
+            $query = "SELECT * FROM networks WHERE CONCAT(Added_By, Network) LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == NULL AND $searchValue == NULL){
+
+            $message = "Please enter a value to search.";
+            echo "<script type='text/javascript'>alert('$message');</script>"; 
+
+            $resultSet = mysqli_query($connection, "SELECT * FROM networks ORDER BY $order $sort");
+
+        }else{
+
+        	$resultSet = mysqli_query($connection, "SELECT * FROM networks ORDER BY $order $sort");
+        }
+
+    } else {
+
+        $resultSet = mysqli_query($connection, "SELECT * FROM networks ORDER BY $order $sort"); 
+    }
+	
+?>
+
+
+<?php
+
 echo "
 <!DOCTYPE html>
 <html>
@@ -39,22 +86,39 @@ echo "
 <body>
 ";
 
-	global $connection;
-	$resultSet = mysqli_query($connection, "SELECT * FROM networks ORDER BY $order $sort");
 
-	if(mysqli_num_rows($resultSet) > 0){
+	if(mysqli_num_rows($result) > 0){
 
+		$sort == 'DESC' ? $sort = 'ASC' : $sort = 'DESC';
 
 		echo "
 			<div class='manage_networks'>
 
-				<center><h2> Manage Networks </h2></center><br>
+				<center><h2> Manage Networks </h2></center><br><br>
 				
-				<a href='add_network.php' class='a'><button style='font-size: 13px;' class='btn btn-default'><img src='images/add.png' width='20px;' height='20px;' style='margin-right:8px;'>Add New Network</button></a> 
-				<hr><br>
+				<a href='add_network.php' class='a'><button style='float:left; font-size: 13px;' class='btn btn-default'><img src='images/add.png' width='20px;' height='20px;' style='margin-right:8px;'>Add New Network</button></a> 
+
+				<form action='manage_networks.php' method='POST'>
+
+					<input class='form-control' type='submit' name='search' value='SEARCH' style='display:inline; width: 80px; height: 35px; color:white; background-color: #2db7b9; float:right;'>
+
+					<input class='form-control' style='display:inline; width: 250px; height: 35px; float:right; margin-right:20px;' type='text' name='valueToSearch' placeholder='Search..'>
+
+
+					<div class='form-group'>                    
+		                    <div class='col-sm-10'> 
+		                        <select class='selectpicker form-control' style='display:inline; float:right; width: 250px; margin-right:20px;' required='required' name='column'>
+		                            <option selected='selected'>All</option>
+		                            <option>Added by</option>
+									<option>Network</option>
+		                        </select>
+		                    </div> 
+		   
+		            </div>
+
+		            <br><br>
 			";
 
-		$sort == 'DESC' ? $sort = 'ASC' : $sort = 'DESC';
 
 		echo "
 		<table class='table'>
@@ -64,6 +128,9 @@ echo "
 				<th colspan='2'> Action </th>
 			</tr>	
 		";
+
+
+	if(mysqli_num_rows($resultSet) > 0){
 
 		while($network = mysqli_fetch_assoc($resultSet)){
 
@@ -83,7 +150,20 @@ echo "
 
 		}
 
-echo "</table>";
+	}else{
+			echo "
+				<tr>
+	                <center>
+	                    <td colspan='8'><h5> No results found.</h5></td>
+	                </center>
+	            </tr>
+            ";
+		}		
+
+echo "
+	</table>
+	</form>
+	";
 		
 	}else{	
 		

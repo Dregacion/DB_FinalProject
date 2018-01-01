@@ -8,6 +8,7 @@
 	
 	$user = $_SESSION["username"];
     $safe_username = mysqli_real_escape_string($connection, $user);
+
 	$order = "";
 	$sort = "";
 
@@ -22,6 +23,94 @@
 	}else{
 		$sort = 'DESC';
 	} 
+
+
+	$result = mysqli_query($connection, "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND Mobile_Number != 'NULL' ORDER BY $order $sort");
+
+
+	if(isset($_POST['search'])){
+
+	    $searchColumn = $_POST['column'];
+        $searchValue = $_POST['valueToSearch'];
+
+        if($searchColumn == 'Username'){
+
+        	$query  = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND Username LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'Date'){
+
+        	$Date_col = 'Date';
+
+        	$query  = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND ".$Date_col." LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'Time'){
+
+        	$Time_col = 'Time';
+
+        	$query  = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND ".$Time_col." LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'Mobile Number'){
+
+        	$Number_col = 'Mobile_Number';
+
+        	$query  = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND ".$Number_col." LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'Load Amount'){
+
+        	$query  = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND Amount_of_Load LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'Amount Paid'){
+
+        	$query  = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND Amount_Paid LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'Network'){
+
+        	$query  = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND Network LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == 'All'){
+
+        	$Date_col = 'Date';
+        	$Time_col = 'Time';
+
+            $query = "SELECT * FROM view_load_records WHERE Username = '$safe_username' AND CONCAT(Username, ".$Date_col.", ".$Time_col.", Mobile_Number, Amount_of_Load, Amount_Paid, Network) LIKE '%".$searchValue."%'";
+
+            $resultSet  = mysqli_query($connection, $query);
+
+        }else if($searchColumn == NULL AND $searchValue == NULL){
+
+            $message = "Please enter a value to search.";
+            echo "<script type='text/javascript'>alert('$message');</script>"; 
+
+            $resultSet = mysqli_query($connection, "SELECT * FROM view_load_records WHERE Username = '$safe_username' ORDER BY $order $sort");
+
+        }else{
+
+        	$resultSet = mysqli_query($connection, "SELECT * FROM view_load_records WHERE Username = '$safe_username' ORDER BY $order $sort");
+        }
+
+    } else {
+
+        $resultSet = mysqli_query($connection, "SELECT * FROM view_load_records WHERE Username = '$safe_username' ORDER BY $order $sort");
+    }
+	
+?>
+
+
+<?php
 
 echo "
 <!DOCTYPE html>
@@ -41,23 +130,47 @@ echo "
 <body>
 ";
 
-	global $connection;
-	$resultSet = mysqli_query($connection, "SELECT * FROM view_load_records WHERE Username = '$safe_username' ORDER BY $order $sort");
 
-	if(mysqli_num_rows($resultSet) > 0){
-
-
-		echo "
-			<div class='smart_loads'>
-
-				<center><h2> Your Load History </h2></center><br>
-
-				<hr><br>
-			";
+	if(mysqli_num_rows($result) > 0){
 
 		$sort == 'DESC' ? $sort = 'ASC' : $sort = 'DESC';
-		
+
 		echo "
+			<div class='load_history'>
+
+				<center><h2> Your Load History </h2></center><br><br>
+
+				<form action='load_history.php' method='POST'>
+
+					<input class='form-control' type='submit' name='search' value='SEARCH' style='display:inline; width: 80px; height: 35px; color:white; background-color: #2db7b9; float:right;'>
+
+					<input class='form-control' style='display:inline; width: 250px; height: 35px; float:right; margin-right:20px;' name='valueToSearch' placeholder='Search..'>
+
+
+					<div class='form-group'>                    
+		                    <div class='col-sm-10'> 
+		                        <select class='selectpicker form-control' style='display:inline; float:right; width: 250px; margin-right:20px;' required='required' name='column'>
+		                        	
+		                            <option selected='selected'>All</option>
+		                            <option>Username</option>
+									<option>Date</option>
+									<option>Time</option>
+		                            <option>Mobile Number</option>
+									<option>Load Amount</option>
+									<option>Amount Paid</option>
+									<option>Network</option>
+
+		                        </select>
+		                    </div> 
+		   
+		            </div>
+
+		            <br><br>
+			";
+
+
+		echo "	
+
 		<table class='table'>
 			<tr>
 				<th><a href='?order=Username&&sort=$sort' class='table_header' title='Sort ASC/DESC'> Username </a></th>
@@ -69,6 +182,9 @@ echo "
 				<th><a href='?order=Network&&sort=$sort' class='table_header' title='Sort ASC/DESC'> Network </a></th>
 			</tr>	
 		";
+
+
+	if(mysqli_num_rows($resultSet) > 0){
 
 		while($load = mysqli_fetch_assoc($resultSet)){
 
@@ -86,17 +202,31 @@ echo "
 				<td> $Username </td>
 				<td> $Date </td>
 				<td> $Time </td>
-				<td> 0$Mobile_Number </td>
+				<td> $Mobile_Number </td>
 				<td> $Amount_of_Load </td>
 				<td> $Amount_Paid </td>
 				<td> $Network </td>
 			";
 
-	echo "</tr>";
+		echo "</tr>";
 
 		}
 
-echo "</table>";
+	}else{
+			echo "
+				<tr>
+	                <center>
+	                    <td colspan='8'><h5> No results found.</h5></td>
+	                </center>
+	            </tr>
+            ";
+		}	
+
+
+echo "
+	</table>
+	</form>
+	";
 		
 	}else{	
 		
